@@ -1,0 +1,5 @@
+/node_modules
+/temp
+/configs.json
+/.vscode
+/.idea
