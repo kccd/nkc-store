@@ -1,5 +1,6 @@
 require('colors');
 const http = require('http');
+const commander = require('commander');
 const koa = require('koa');
 const koaBody = require('koa-body');
 const router = require('./routes');
@@ -13,7 +14,15 @@ try {
   fs.mkdirSync(tempPath);
 }
 // todo: 修复路径 1
-const { port, attachment } = require('./configs.json');
+const { port: configPort, attachment } = require('./configs.json');
+
+commander
+  .option('--host <host>', '服务监听地址')
+  .option('--port <port>', '服务端口号', Number)
+  .parse(process.argv);
+
+const host = commander.host;
+const port = commander.port === undefined ? configPort : commander.port;
 
 const body = require('./middlewares/body');
 const error = require('./middlewares/error');
@@ -48,6 +57,12 @@ app.use(body);
 
 const server = http.createServer(app.callback());
 
-server.listen(port, () => {
-  console.log(`store service is running at ${port}`.green);
-});
+const onListening = () => {
+  console.log(`store service is running at ${host ? `${host}:` : ''}${port}`.green);
+};
+
+if (host) {
+  server.listen(port, host, onListening);
+} else {
+  server.listen(port, onListening);
+}
